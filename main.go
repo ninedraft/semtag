@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/blang/semver"
@@ -31,7 +32,7 @@ func main() {
 	}
 }
 
-func readSemverFile() (semver.Version, error) {
+func getLocalVersion() (semver.Version, error) {
 	data, err := ioutil.ReadFile(versionFileName)
 	if err != nil {
 		return semver.Version{}, err
@@ -39,4 +40,8 @@ func readSemverFile() (semver.Version, error) {
 	semverString := strings.TrimSpace(string(data))
 	version, err := semver.Parse(semverString)
 	return version, err
+}
+
+func storeLocalVersion(vers semver.Version) error {
+	return ioutil.WriteFile(versionFileName, []byte(vers.String()), os.ModePerm)
 }
