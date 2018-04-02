@@ -25,6 +25,7 @@ func main() {
 	root.AddCommand(
 		increment,
 		initCommand,
+		getCurrentVersion,
 	)
 	err := root.Execute()
 	if err != nil {

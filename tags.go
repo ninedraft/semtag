@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"sort"
 
 	"github.com/blang/semver"
 	"github.com/ninedraft/semtag/git"
@@ -27,7 +28,7 @@ func getTags(repPath string) ([]semver.Version, error) {
 	if err == nil {
 		semverTags = append(semverTags, localTag)
 	}
-	semver.Sort(semverTags)
+	sort.Reverse(semver.Versions(semverTags))
 	return semverTags, nil
 }
 

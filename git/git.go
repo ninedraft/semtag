@@ -2,6 +2,7 @@ package git
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -81,6 +82,7 @@ func (repo *Repo) Remotes() ([]string, error) {
 	}
 	scanner := bufio.NewScanner(stdout)
 	remotes := []string{}
+	go cmd.Run()
 	for scanner.Scan() {
 		err = scanner.Err()
 		if err != nil {
@@ -97,5 +99,12 @@ func (repo *Repo) AddTag(tag semver.Version, comments ...string) error {
 	}
 	message := strconv.QuoteToASCII(strings.Join(comments, "; "))
 	cmd := exec.Command("git", "tag", "-a", "v"+tag.String(), "-m", message)
-	return cmd.Run()
+	buf := &bytes.Buffer{}
+	cmd.Stderr = buf
+	switch err := cmd.Run().(type) {
+	case *exec.ExitError:
+		return fmt.Errorf("%s", buf.String())
+	default:
+		return err
+	}
 }
