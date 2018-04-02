@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/ninedraft/semtag/git"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,23 +26,12 @@ var increment = &cobra.Command{
 			command.Help()
 			return
 		}
-		_, err := os.Stat(versionFileName)
-		switch {
-		case os.IsNotExist(err):
-			fmt.Printf("Can't update version in unitialized project!\nRun semtag init")
-			return
-		case err == nil:
-		default:
-			fmt.Println(err)
-			return
-		}
 		level := args[0]
 		version, err := getHeadTag("")
 		switch {
 		case err == nil:
 			// pass
 		case os.IsNotExist(err):
-
 			return
 		default:
 			fmt.Println(err)
@@ -60,8 +49,11 @@ var increment = &cobra.Command{
 			return
 		}
 		if incrementConfig.Force || areYouSure() {
-			err := ioutil.WriteFile(versionFileName, []byte(version.String()), os.ModePerm)
-			if err != nil {
+			if err := storeLocalVersion(version); err != nil {
+				fmt.Println(err)
+				return
+			}
+			if err := (&git.Repo{}).AddTag(version); err != nil {
 				fmt.Println(err)
 				return
 			}
