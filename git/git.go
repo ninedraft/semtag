@@ -49,7 +49,9 @@ func (repo *Repo) Tags() ([]string, error) {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(stdout)
-	go cmd.Run()
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
 	var tags []string
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -99,11 +101,16 @@ func (repo *Repo) AddTag(tag semver.Version, comments ...string) error {
 	}
 	message := strconv.QuoteToASCII(strings.Join(comments, "; "))
 	cmd := exec.Command("git", "tag", "-a", "v"+tag.String(), "-m", message)
-	buf := &bytes.Buffer{}
-	cmd.Stderr = buf
+
+	errBuf := &bytes.Buffer{}
+	cmd.Stderr = errBuf
+
+	outputBuf := &bytes.Buffer{}
+	cmd.Stdout = outputBuf
+
 	switch err := cmd.Run().(type) {
 	case *exec.ExitError:
-		return fmt.Errorf("%s", buf.String())
+		return fmt.Errorf("%v", errBuf)
 	default:
 		return err
 	}
