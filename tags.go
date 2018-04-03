@@ -28,7 +28,9 @@ func getTags(repPath string) ([]semver.Version, error) {
 	if err == nil {
 		semverTags = append(semverTags, localTag)
 	}
-	sort.Reverse(semver.Versions(semverTags))
+	sort.Slice(semverTags, func(i, j int) bool {
+		return semverTags[i].GT(semverTags[j])
+	})
 	return semverTags, nil
 }
 
